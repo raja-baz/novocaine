@@ -267,7 +267,7 @@ static Novocaine *audioManager = nil;
     outputDescription.componentManufacturer = kAudioUnitManufacturer_Apple;    
     
 #elif defined (USING_IOS)
-    AudioComponentDescription inputDescription = {0};	
+    AudioComponentDescription inputDescription = {0,0,0,0,0};	
     inputDescription.componentType = kAudioUnitType_Output;
     inputDescription.componentSubType = kAudioUnitSubType_RemoteIO;
     inputDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
