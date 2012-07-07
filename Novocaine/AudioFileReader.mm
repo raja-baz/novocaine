@@ -292,5 +292,14 @@
     }
 }
 
+- (void)stop
+{
+    // Release the dispatch timer because it holds a reference to this class instance
+    if (self.callbackTimer) {
+        dispatch_release(self.callbackTimer);
+        self.playing = FALSE;
+    }
+}
+
 
 @end
