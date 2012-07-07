@@ -674,7 +674,7 @@ OSStatus inputCallback   (void						*inRefCon,
         
         float zero = 0.0f;
         if ( ! sm.isInterleaved ) { // if the data is in separate buffers, make it interleaved
-            for (int i=0; i < sm.numInputChannels; ++i) {
+            for (UInt32 i=0; i < sm.numInputChannels; ++i) {
                 vDSP_vsadd((float *)sm.inputBuffer->mBuffers[i].mData, 1, &zero, sm.inData+i, 
                            sm.numInputChannels, inNumberFrames);
             }
@@ -689,7 +689,7 @@ OSStatus inputCallback   (void						*inRefCon,
     else if ( sm.numBytesPerSample == 2 ) // then we're dealing with SInt16's
     {
         if ( ! sm.isInterleaved ) {
-            for (int i=0; i < sm.numInputChannels; ++i) {
+            for (UInt32 i=0; i < sm.numInputChannels; ++i) {
                 vDSP_vflt16((SInt16 *)sm.inputBuffer->mBuffers[i].mData, 1, sm.inData+i, sm.numInputChannels, inNumberFrames);
             }            
         }
@@ -722,7 +722,7 @@ OSStatus renderCallback (void						*inRefCon,
     float zero = 0.0;
     
     
-    for (int iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {        
+    for (UInt32 iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {        
         memset(ioData->mBuffers[iBuffer].mData, 0, ioData->mBuffers[iBuffer].mDataByteSize);
     }
     
@@ -741,7 +741,7 @@ OSStatus renderCallback (void						*inRefCon,
     if ( sm.numBytesPerSample == 4 ) // then we've already got floats
     {
         
-        for (int iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {  
+        for (UInt32 iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {  
             
             int thisNumChannels = ioData->mBuffers[iBuffer].mNumberChannels;
             
@@ -755,7 +755,7 @@ OSStatus renderCallback (void						*inRefCon,
         float scale = (float)INT16_MAX;
         vDSP_vsmul(sm.outData, 1, &scale, sm.outData, 1, inNumberFrames*sm.numOutputChannels);
         
-        for (int iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {  
+        for (UInt32 iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {  
             
             int thisNumChannels = ioData->mBuffers[iBuffer].mNumberChannels;
             
