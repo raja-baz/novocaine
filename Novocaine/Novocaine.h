@@ -39,11 +39,12 @@
 extern "C" {
 #endif
 	
-inline static void CheckError(OSStatus error, const char *operation)
-{
+inline static void CheckError(OSStatus error, const char *operation) {
 	if (error == noErr) return;
 	
 	char str[20];
+    memset(str,0,sizeof(str)),
+    
 	// see if it appears to be a 4-char-code
 	*(UInt32 *)(str + 1) = CFSwapInt32HostToBig(error);
 	if (isprint(str[1]) && isprint(str[2]) && isprint(str[3]) && isprint(str[4])) {
@@ -137,7 +138,6 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 
 // Singleton methods
 + (Novocaine *) audioManager;
-
 
 // Audio Unit methods
 - (void)play;

@@ -24,10 +24,7 @@
 
 #include "RingBuffer.h"
 
-
-RingBuffer::RingBuffer(SInt64 bufferLength, SInt64 numChannels) : 
-mSizeOfBuffer(bufferLength)
-{
+RingBuffer::RingBuffer(SInt64 bufferLength, SInt64 numChannels) : mSizeOfBuffer(bufferLength) {
 	
 	if (numChannels > kMaxNumChannels)
 		mNumChannels = kMaxNumChannels;
@@ -46,15 +43,13 @@ mSizeOfBuffer(bufferLength)
 		
 }
 
-RingBuffer::~RingBuffer() 
-{
+RingBuffer::~RingBuffer()  {
     for (int i=0; i<mNumChannels; i++) {
         free(mData[i]);
     }
 }
 
-void RingBuffer::AddNewSInt16AudioBuffer(const AudioBuffer aBuffer)
-{
+void RingBuffer::AddNewSInt16AudioBuffer(const AudioBuffer aBuffer) {
 		
 	int numChannelsHere = aBuffer.mNumberChannels;
 	int numFrames = aBuffer.mDataByteSize/(numChannelsHere*sizeof(SInt16));
@@ -76,8 +71,7 @@ void RingBuffer::AddNewSInt16AudioBuffer(const AudioBuffer aBuffer)
 	
 }
 
-void RingBuffer::AddNewSInt16Data(const SInt16 *newData, const SInt64 numFrames, const SInt64 whichChannel)
-{
+void RingBuffer::AddNewSInt16Data(const SInt16 *newData, const SInt64 numFrames, const SInt64 whichChannel) {
 	SInt64 idx;
 	for (int i=0; i < numFrames; ++i) {
 		idx = (i + mLastWrittenIndex[whichChannel]) % (mSizeOfBuffer);
@@ -89,8 +83,7 @@ void RingBuffer::AddNewSInt16Data(const SInt16 *newData, const SInt64 numFrames,
     if (mNumUnreadFrames[whichChannel] >= mSizeOfBuffer) mNumUnreadFrames[whichChannel] = mSizeOfBuffer;
 }
 
-void RingBuffer::AddNewFloatData(const float *newData, const SInt64 numFrames, const SInt64 whichChannel)
-{
+void RingBuffer::AddNewFloatData(const float *newData, const SInt64 numFrames, const SInt64 whichChannel) {
 	
 	SInt64 idx;
 	for (int i=0; i < numFrames; ++i) {
@@ -103,8 +96,7 @@ void RingBuffer::AddNewFloatData(const float *newData, const SInt64 numFrames, c
     if (mNumUnreadFrames[whichChannel] >= mSizeOfBuffer) mNumUnreadFrames[whichChannel] = mSizeOfBuffer;
 }
 
-void RingBuffer::AddNewDoubleData(const double *newData, const SInt64 numFrames, const SInt64 whichChannel)
-{
+void RingBuffer::AddNewDoubleData(const double *newData, const SInt64 numFrames, const SInt64 whichChannel) {
 	
 	SInt64 idx;
 	for (int i=0; i < numFrames; ++i) {
@@ -117,8 +109,7 @@ void RingBuffer::AddNewDoubleData(const double *newData, const SInt64 numFrames,
     if (mNumUnreadFrames[whichChannel] >= mSizeOfBuffer) mNumUnreadFrames[whichChannel] = mSizeOfBuffer;
 }
 
-void RingBuffer::AddNewInterleavedFloatData(const float *newData, const SInt64 numFrames, const SInt64 numChannelsHere)
-{
+void RingBuffer::AddNewInterleavedFloatData(const float *newData, const SInt64 numFrames, const SInt64 numChannelsHere) {
 	
 	int numChannelsToCopy = (numChannelsHere <= mNumChannels) ? numChannelsHere : mNumChannels;
 	float zero = 0.0f;
@@ -161,8 +152,7 @@ void RingBuffer::AddNewInterleavedFloatData(const float *newData, const SInt64 n
 	
 }
 
-void RingBuffer::FetchFreshData2(float *outData, SInt64 numFrames, SInt64 whichChannel, SInt64 stride)
-{
+void RingBuffer::FetchFreshData2(float *outData, SInt64 numFrames, SInt64 whichChannel, SInt64 stride) {
 
     if (mLastWrittenIndex[whichChannel] - numFrames >= 0) { // if we're requesting samples that won't go off the left end of the ring buffer, then go ahead and copy them all out.
         
@@ -182,7 +172,6 @@ void RingBuffer::FetchFreshData2(float *outData, SInt64 numFrames, SInt64 whichC
         int numSamplesInFirstCopy = numFrames - mLastWrittenIndex[whichChannel];
         // The copy that starts at the beginning, and proceeds to the end.
         int numSamplesInSecondCopy = mLastWrittenIndex[whichChannel];
-        
         
         float zero = 0.0f;
         UInt32 firstIndex = mSizeOfBuffer - numSamplesInFirstCopy;
@@ -204,8 +193,7 @@ void RingBuffer::FetchFreshData2(float *outData, SInt64 numFrames, SInt64 whichC
 
 }
 
-void RingBuffer::FetchData(float *outData, SInt64 numFrames, SInt64 whichChannel, SInt64 stride)
-{
+void RingBuffer::FetchData(float *outData, SInt64 numFrames, SInt64 whichChannel, SInt64 stride) {
     int idx;
 	for (int i=0; i < numFrames; ++i) {
 		idx = (mLastReadIndex[whichChannel] + i) % (mSizeOfBuffer);
@@ -219,16 +207,14 @@ void RingBuffer::FetchData(float *outData, SInt64 numFrames, SInt64 whichChannel
 
 }
 
-void RingBuffer::FetchInterleavedData(float *outData, SInt64 numFrames, SInt64 numChannels)
-{
+void RingBuffer::FetchInterleavedData(float *outData, SInt64 numFrames, SInt64 numChannels) {
     for (int iChannel=0; iChannel < numChannels; ++iChannel) {
         FetchData(&outData[iChannel], numFrames, iChannel, numChannels);
     }
 
 }
 
-void RingBuffer::FetchFreshData(float *outData, SInt64 numFrames, SInt64 whichChannel, SInt64 stride)
-{
+void RingBuffer::FetchFreshData(float *outData, SInt64 numFrames, SInt64 whichChannel, SInt64 stride) {
 
 	int idx;
 	for (int i=0; i < numFrames; ++i) {
@@ -240,19 +226,15 @@ void RingBuffer::FetchFreshData(float *outData, SInt64 numFrames, SInt64 whichCh
     mNumUnreadFrames[whichChannel] = 0; // Reading at the front of the buffer resets old data
 }
 
-void RingBuffer::SeekWriteHeadPosition(SInt64 offset, int iChannel)
-{
+void RingBuffer::SeekWriteHeadPosition(SInt64 offset, int iChannel) {
     mLastWrittenIndex[iChannel] = (mLastWrittenIndex[iChannel] + offset) % (mSizeOfBuffer);
 }
 
-void RingBuffer::SeekReadHeadPosition(SInt64 offset, int iChannel)
-{
+void RingBuffer::SeekReadHeadPosition(SInt64 offset, int iChannel) {
     mLastReadIndex[iChannel] = (mLastReadIndex[iChannel] + offset) % (mSizeOfBuffer);
 }
 
-
-SInt64 RingBuffer::NumNewFrames(SInt64 lastReadFrame, int iChannel)
-{
+SInt64 RingBuffer::NumNewFrames(SInt64 lastReadFrame, int iChannel) {
 	int numNewFrames = mLastWrittenIndex[iChannel] - lastReadFrame;
 	if (numNewFrames < 0) numNewFrames += mSizeOfBuffer;
 	
@@ -260,32 +242,25 @@ SInt64 RingBuffer::NumNewFrames(SInt64 lastReadFrame, int iChannel)
 }
 
 #pragma mark - Analytics
-float RingBuffer::Mean(const SInt64 whichChannel)
-{
+float RingBuffer::Mean(const SInt64 whichChannel) {
 	float mean;
 	vDSP_meanv(mData[whichChannel],1,&mean,mSizeOfBuffer);
 	return mean;
 }
 
-
-float RingBuffer::Max(const SInt64 whichChannel)
-{
+float RingBuffer::Max(const SInt64 whichChannel) {
 	float max;
 	vDSP_maxv(mData[whichChannel],1,&max,mSizeOfBuffer);
 	return max;
 }
 
-
-float RingBuffer::Min(const SInt64 whichChannel)
-{
+float RingBuffer::Min(const SInt64 whichChannel) {
 	float min;
 	vDSP_minv(mData[whichChannel],1,&min,mSizeOfBuffer);
 	return min;	
 }
 
-
-void RingBuffer::Clear()
-{
+void RingBuffer::Clear() {
 	for (int i=0; i < mNumChannels; ++i) {
 		memset(mData[i], 0, sizeof(float)*mSizeOfBuffer);
 		mLastWrittenIndex[i] = 0;

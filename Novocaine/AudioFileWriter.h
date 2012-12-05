@@ -33,8 +33,8 @@
 {
 }
 
-@property (getter=getDuration, readonly) float currentTime;
-@property (getter=getDuration) float duration;
+@property (readonly) float currentTime;
+@property (readwrite) float duration;
 @property float samplingRate;
 @property UInt32 numChannels;
 @property float latency;

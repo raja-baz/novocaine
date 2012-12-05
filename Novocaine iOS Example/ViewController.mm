@@ -25,71 +25,127 @@
 #import "ViewController.h"
 
 @interface ViewController ()
-
 @end
 
 @implementation ViewController
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
 }
 
-- (void)viewDidUnload
-{
+- (void)viewDidUnload {
     [super viewDidUnload];
     // Release any retained subviews of the main view.
+    
+    [audioManager pause];
+    audioManager = nil;
+    
+    delete ringBuffer;
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    
+    BOOL testAudioFileReader = YES;
+    BOOL testAudio = YES;
+    BOOL testPlayNoise = NO;
+    BOOL testMeasureDecibles = YES;
+    BOOL testPlayDalekVoice = NO;
 
     ringBuffer = new RingBuffer(32768, 2); 
     audioManager = [Novocaine audioManager];
 
+    RingBuffer *bRingBuffer=ringBuffer;
     
-    // Basic playthru example
-//    [audioManager setInputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels) {
-//        float volume = 0.5;
-//        vDSP_vsmul(data, 1, &volume, data, 1, numFrames*numChannels);
-//        ringBuffer->AddNewInterleavedFloatData(data, numFrames, numChannels);
-//    }];
-//    
-//    
-//    [audioManager setOutputBlock:^(float *outData, UInt32 numFrames, UInt32 numChannels) {
-//        ringBuffer->FetchInterleavedData(outData, numFrames, numChannels);
-//    }];
+    // AUDIO FILE READING OHHH YEAHHHH
+    // ========================================
+    if (testAudioFileReader) {
+        NSURL *inputFileURL = [[NSBundle mainBundle] URLForResource:@"TLC" withExtension:@"mp3"];
+        
+        fileReader = [[AudioFileReader alloc]
+                      initWithAudioFileURL:inputFileURL
+                      samplingRate:audioManager.samplingRate
+                      numChannels:audioManager.numOutputChannels];
+        
+        [fileReader play];
+        fileReader.currentTime = 30.0;
+    }
     
+    __block AudioFileReader *bFileReader = fileReader;
     
-     // MAKE SOME NOOOOO OIIIISSSEEE
-    // ==================================================
-//     [audioManager setOutputBlock:^(float *newdata, UInt32 numFrames, UInt32 thisNumChannels)
-//         {
-//             for (int i = 0; i < numFrames * thisNumChannels; i++) {
-//                 newdata[i] = (rand() % 100) / 100.0f / 2;
-//         }
-//     }];
+    if(testAudio) {
+        
+        // Basic playthru example
+        __block float dbVal = 0.0;
+        __block float frequency = 100.0;
+        __block float phase = 0.0;
+        
+        [audioManager setInputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels) {
+            
+            float volume = 0.5;
+            vDSP_vsmul(data, 1, &volume, data, 1, numFrames*numChannels);
+            
+            bRingBuffer->AddNewInterleavedFloatData(data, numFrames, numChannels);
+            
+            // MEASURE SOME DECIBELS!
+            // ==================================================
+            if(testMeasureDecibles) {
+                vDSP_vsq(data, 1, data, 1, numFrames*numChannels);
+                float meanVal = 0.0;
+                vDSP_meanv(data, 1, &meanVal, numFrames*numChannels);
+                
+                float one = 1.0;
+                vDSP_vdbcon(&meanVal, 1, &one, &meanVal, 1, 1, 0);
+                dbVal = dbVal + 0.2 * (meanVal - dbVal);
+                
+                if(dbVal > -30)
+                    printf("Decibel level: %f\n", dbVal);
+            }
+
+        }];
+        
+        [audioManager setOutputBlock:^(float *outData, UInt32 numFrames, UInt32 numChannels) {
+            
+            bRingBuffer->FetchInterleavedData(outData, numFrames, numChannels);
+
+            if(testPlayNoise) {
+                
+                // MAKE SOME NOOOOO OIIIISSSEEE
+                // ==================================================
+                for (int i = 0; i < numFrames * numChannels; i++) {
+                    outData[i] = (rand() % 100) / 100.0f / 2;
+                }
+                
+            } else if(testPlayDalekVoice){
+                
+                // DALEK VOICE!
+                float samplingRate = audioManager.samplingRate;
+                for (int i=0; i < numFrames; ++i) {
+                    for (int iChannel = 0; iChannel < numChannels; ++iChannel)
+                    {
+                        float theta = phase * M_PI * 2;
+                        outData[i*numChannels + iChannel] *= sin(theta);
+                    }
+                    phase += 1.0 / (samplingRate / frequency);
+                    if (phase > 1.0) phase = -1;
+                }
+
+            } else {
+                
+                // AUDIO FILE READING OHHH YEAHHHH
+                // ========================================
+                if (testAudioFileReader) {
+                    [bFileReader retrieveFreshAudio:outData numFrames:numFrames numChannels:numChannels];
+                }
+            }
     
-    
-    // MEASURE SOME DECIBELS!
-    // ==================================================
-//    __block float dbVal = 0.0;
-//    [audioManager setInputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels) {
-//
-//        vDSP_vsq(data, 1, data, 1, numFrames*numChannels);
-//        float meanVal = 0.0;
-//        vDSP_meanv(data, 1, &meanVal, numFrames*numChannels);
-//
-//        float one = 1.0;
-//        vDSP_vdbcon(&meanVal, 1, &one, &meanVal, 1, 1, 0);
-//        dbVal = dbVal + 0.2*(meanVal - dbVal);
-//        printf("Decibel level: %f\n", dbVal);
-//        
-//    }];
+        }];
+        
+    }
     
     // SIGNAL GENERATOR!
+    {
 //    __block float frequency = 40.0;
 //    __block float phase = 0.0;
 //    [audioManager setOutputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
@@ -107,9 +163,10 @@
 //             if (phase > 1.0) phase = -1;
 //         }
 //     }];
-    
+    }
     
     // DALEK VOICE!
+    {
     // (aka Ring Modulator)
     
 //    [audioManager setInputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
@@ -135,10 +192,10 @@
 //             if (phase > 1.0) phase = -1;
 //         }
 //     }];
-    
+    }
     
     // VOICE-MODULATED OSCILLATOR
-    
+    {
 //    __block float magnitude = 0.0;
 //    [audioManager setInputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
 //     {
@@ -163,28 +220,10 @@
 //             if (phase > 1.0) phase = -1;
 //         }
 //     }];
-    
-    
-    // AUDIO FILE READING OHHH YEAHHHH
-    // ========================================    
-    NSURL *inputFileURL = [[NSBundle mainBundle] URLForResource:@"TLC" withExtension:@"mp3"];        
+    }
 
-    fileReader = [[AudioFileReader alloc]
-                  initWithAudioFileURL:inputFileURL 
-                  samplingRate:audioManager.samplingRate
-                  numChannels:audioManager.numOutputChannels];
-    
-    [fileReader play];
-    fileReader.currentTime = 30.0;
-    __block AudioFileReader *file = fileReader;
-    [audioManager setOutputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
-     {
-         [file retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
-         NSLog(@"Time: %f", fileReader.currentTime);
-     }];
-
-    
     // AUDIO FILE WRITING YEAH!
+    {
     // ========================================    
 //    NSArray *pathComponents = [NSArray arrayWithObjects:
 //                               [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject], 
@@ -208,12 +247,10 @@
 //            [fileWriter release];
 //        }
 //    };
-
-    
+    }
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
     } else {

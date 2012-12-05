@@ -46,17 +46,14 @@
 
 static pthread_mutex_t outputAudioFileLock;
 
-- (void)dealloc
-{
+- (void)dealloc {
     [self stop];
     
-    free(self.outputBuffer);
-    free(self.holdingBuffer);
-    
+    free(_outputBuffer);
+    free(_holdingBuffer);
 }
 
-- (id)initWithAudioFileURL:(NSURL *)urlToAudioFile samplingRate:(float)thisSamplingRate numChannels:(UInt32)thisNumChannels
-{
+- (id)initWithAudioFileURL:(NSURL *)urlToAudioFile samplingRate:(float)thisSamplingRate numChannels:(UInt32)thisNumChannels {
     self = [super init];
     if (self)
     {
@@ -113,8 +110,7 @@ static pthread_mutex_t outputAudioFileLock;
     return self;
 }
 
-- (void)writeNewAudio:(float *)newData numFrames:(UInt32)thisNumFrames numChannels:(UInt32)thisNumChannels
-{
+- (void)writeNewAudio:(float *)newData numFrames:(UInt32)thisNumFrames numChannels:(UInt32)thisNumChannels {
     UInt32 numIncomingBytes = thisNumFrames*thisNumChannels*sizeof(float);
     memcpy(self.outputBuffer, newData, numIncomingBytes);
     
@@ -137,9 +133,7 @@ static pthread_mutex_t outputAudioFileLock;
     
 }
 
-
-- (float)getDuration
-{
+- (float)getDuration {
     // We're going to directly calculate the duration of the audio file (in seconds)
     SInt64 framesInThisFile;
     UInt32 propertySize = sizeof(framesInThisFile);
@@ -153,10 +147,7 @@ static pthread_mutex_t outputAudioFileLock;
     
 }
 
-
-
-- (void)configureWriterCallback
-{
+- (void)configureWriterCallback {
     
     if (!self.callbackTimer)
     {
@@ -185,11 +176,7 @@ static pthread_mutex_t outputAudioFileLock;
     
 }
 
-
-
-- (void)record;
-{
-    
+- (void)record {
     // Configure (or if necessary, create and start) the timer for retrieving MP3 audio
     [self configureWriterCallback];
     
@@ -201,8 +188,7 @@ static pthread_mutex_t outputAudioFileLock;
     
 }
 
-- (void)stop
-{
+- (void)stop {
     // Close the
     pthread_mutex_lock( &outputAudioFileLock );
     ExtAudioFileDispose(self.outputFile);
@@ -210,16 +196,13 @@ static pthread_mutex_t outputAudioFileLock;
     self.recording = FALSE;
 }
 
-- (void)pause
-{
+- (void)pause {
     // Pause the dispatch timer for retrieving the MP3 audio
     if (self.callbackTimer) {
         dispatch_suspend(self.callbackTimer);
         self.recording = FALSE;
     }
 }
-
-
 
 @end
 
