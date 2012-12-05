@@ -97,38 +97,8 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 #elif defined (USING_OSX)
 @interface Novocaine : NSObject
 #endif
-{    
-	// Audio Handling
-	AudioUnit inputUnit;
-    AudioUnit outputUnit;
-    AudioBufferList *inputBuffer;
-    
-	// Session Properties
-	BOOL inputAvailable;
-	NSString *inputRoute;
-	UInt32 numInputChannels;
-	UInt32 numOutputChannels;
-    Float64 samplingRate;
-    BOOL isInterleaved;
-    UInt32 numBytesPerSample;
-    AudioStreamBasicDescription inputFormat;
-    AudioStreamBasicDescription outputFormat;
-	
-	// Audio Processing
-    OutputBlock outputBlock;
-    InputBlock inputBlock;
-    
-	float *inData;
-    float *outData;
-	
-	BOOL playing;
-    // BOOL playThroughEnabled;
-	
-    
+{
 #if defined (USING_OSX)
-    AudioDeviceID *deviceIDs;
-    NSMutableArray *deviceNames;
-    AudioDeviceID defaultInputDeviceID;
     NSString *defaultDeviceName;
 #endif
     
@@ -140,7 +110,7 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 @property (nonatomic, copy) OutputBlock outputBlock;
 @property (nonatomic, copy) InputBlock inputBlock;
 @property BOOL inputAvailable;
-@property (nonatomic, retain) NSString *inputRoute;
+@property (nonatomic, strong) NSString *inputRoute;
 @property UInt32 numInputChannels;
 @property UInt32 numOutputChannels;
 @property Float64 samplingRate;

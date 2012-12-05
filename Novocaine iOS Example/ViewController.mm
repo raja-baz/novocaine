@@ -169,17 +169,17 @@
     // ========================================    
     NSURL *inputFileURL = [[NSBundle mainBundle] URLForResource:@"TLC" withExtension:@"mp3"];        
 
-    fileReader = [[AudioFileReader alloc] 
+    fileReader = [[AudioFileReader alloc]
                   initWithAudioFileURL:inputFileURL 
                   samplingRate:audioManager.samplingRate
                   numChannels:audioManager.numOutputChannels];
     
     [fileReader play];
     fileReader.currentTime = 30.0;
-    
+    __block AudioFileReader *file = fileReader;
     [audioManager setOutputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
      {
-         [fileReader retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
+         [file retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
          NSLog(@"Time: %f", fileReader.currentTime);
      }];
 

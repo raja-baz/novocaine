@@ -28,16 +28,6 @@
 
 @interface AudioFileReader : NSObject
 {
-    float currentTime;
-    float duration;
-    float samplingRate;
-    float latency;
-    UInt32 numChannels;
-    NSURL *audioFileURL;
-    
-    InputBlock readerBlock;
-    
-    BOOL playing;
 }
 
 @property (getter=getCurrentTime, setter=setCurrentTime:) float currentTime;
