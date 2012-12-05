@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 	
-static void CheckError(OSStatus error, const char *operation)
+inline static void CheckError(OSStatus error, const char *operation)
 {
 	if (error == noErr) return;
 	
@@ -137,8 +137,8 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 @property AudioUnit inputUnit;
 @property AudioUnit outputUnit;
 @property AudioBufferList *inputBuffer;
-@property (nonatomic, retain) OutputBlock outputBlock;
-@property (nonatomic, retain) InputBlock inputBlock;
+@property (nonatomic, copy) OutputBlock outputBlock;
+@property (nonatomic, copy) InputBlock inputBlock;
 @property BOOL inputAvailable;
 @property (nonatomic, retain) NSString *inputRoute;
 @property UInt32 numInputChannels;
