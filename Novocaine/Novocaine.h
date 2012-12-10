@@ -83,9 +83,6 @@ void sessionPropertyListener(void *                  inClientData,
 
 #endif
 
-
-void sessionInterruptionListener(void *inClientData, UInt32 inInterruption);
-
 #ifdef __cplusplus
 }
 #endif
@@ -120,7 +117,6 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 @property AudioStreamBasicDescription inputFormat;
 @property AudioStreamBasicDescription outputFormat;
 
-// @property BOOL playThroughEnabled;
 @property BOOL playing;
 @property float *inData;
 @property float *outData;
@@ -135,13 +131,10 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 - (void)enumerateAudioDevices;
 #endif
 
-
-// Singleton methods
-+ (Novocaine *) audioManager;
-
 // Audio Unit methods
 - (void)play;
 - (void)pause;
+- (void)stop;
 - (void)setupAudio;
 - (void)ifAudioInputIsAvailableThenSetupAudioSession;
 
@@ -150,5 +143,6 @@ typedef void (^InputBlock)(float *data, UInt32 numFrames, UInt32 numChannels);
 - (void)checkAudioSource;
 #endif
 
-
+-(void) sessionBeginInterruptionListener;
+-(void) sessionEndInterruptionListener;
 @end

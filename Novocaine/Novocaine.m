@@ -40,8 +40,7 @@
 #define kDefaultDevice 999999
 
 #import "TargetConditionals.h"
-
-static Novocaine *audioManager = nil;
+#import "AudioManager.h"
 
 @interface Novocaine()
 
@@ -53,21 +52,20 @@ static Novocaine *audioManager = nil;
 
 @implementation Novocaine
 
-#pragma mark - Singleton Methods
-+(Novocaine *) audioManager {
-	@synchronized(self)
-	{
-		if (audioManager == nil) {
-			audioManager = [[Novocaine alloc] init];
-		}
-	}
-    return audioManager;
+-(void) sessionBeginInterruptionListener {
+		NSLog(@"Begin interuption");
+		self.inputAvailable = NO;
+}
+
+-(void) sessionEndInterruptionListener {
+	NSLog(@"Begin interuption");
+	self.inputAvailable = YES;
+	[self play];
 }
 
 -(id)init {
 	if (self = [super init])
 	{
-		
 		// Initialize some stuff k?
         self.outputBlock		= nil;
 		self.inputBlock	= nil;
@@ -89,27 +87,34 @@ static Novocaine *audioManager = nil;
 		// Fire up the audio session ( with steady error checking ... )
         [self ifAudioInputIsAvailableThenSetupAudioSession];
 		
+		[[NSNotificationCenter defaultCenter] addObserver:self	selector:@selector(applicationWillResignActive:) name:kAudioSessionBeginInterruptionName object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self	selector:@selector(applicationDidBecomeActive:) name:kAudioSessionEndInterruptionName object:nil];
+		
 		return self;
 	}
 	return nil;
 }
 
 -(void) dealloc {
-    self.outputBlock = nil;
-    self.inputBlock	= nil;
+	
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	
+	[self stop];
+	
+    _outputBlock = nil;
+    _inputBlock	= nil;
     
     // Initialize a float buffer to hold audio
-    free(self.inData); // probably more than we'll need
-    free(self.outData);
-    
-    self.inputBlock = nil;
-    self.outputBlock = nil;
+	if(_inData)
+		free(_inData); // probably more than we'll need
+	if(_outData)
+		free(_outData);
+	
+	_outData = _inData = nil;
     
 #if defined ( USING_OSX )
-    self.deviceNames = nil; // more than we'll need
+    _deviceNames = nil; // more than we'll need
 #endif
-    
-    self.playing = NO;
 }
 
 #pragma mark - Audio Methods
@@ -118,7 +123,6 @@ static Novocaine *audioManager = nil;
 	// Initialize and configure the audio session, and add an interuption listener
     
 #if defined USING_IOS
-    CheckError( AudioSessionInitialize(NULL, NULL, sessionInterruptionListener, (__bridge void *)(self)), "Couldn't initialize audio session");
     [self checkAudioSource];    
 #elif defined USING_OSX
     // TODO: grab the audio device
@@ -589,10 +593,40 @@ static Novocaine *audioManager = nil;
 	if (self.playing) {
         CheckError( AudioOutputUnitStop(self.inputUnit), "Couldn't stop the output unit");
 #if defined ( USING_OSX )
-		CheckError( AudioOutputUnitStop(outputUnit), "Couldn't stop the output unit");
+		CheckError( AudioOutputUnitStop(self.outputUnit), "Couldn't stop the output unit");
 #endif
 		self.playing = NO;
 	}
+}
+
+-(void)stop {
+	[self pause];
+	
+	// Set the audio session category for simultaneous play and record
+	if (!self.playing) {
+		CheckError( AudioOutputUnitStop(self.inputUnit), "Couldn't start the output unit");
+#if defined ( USING_OSX )
+		CheckError( AudioOutputUnitStop(self.outputUnit), "Couldn't start the output unit");
+#endif
+		self.playing = YES;
+		
+	}
+	
+    // Set the audio session active
+    CheckError( AudioSessionSetActive(NO), "Couldn't deactivate the audio session");
+	
+    // Add a property listener, to listen to changes to the session
+    CheckError( AudioSessionRemovePropertyListenerWithUserData(kAudioSessionProperty_AudioRouteChange, sessionPropertyListener, (__bridge void *)(self)), "Couldn't add audio session property listener");
+	
+	free(_inputBuffer);
+	_inputBuffer  = nil;
+
+#if defined USING_OSX
+	free(_outputBuffer);
+	_outputBuffer  = nil;
+#endif
+    
+    _playing = NO;
 }
 
 -(void)play {
@@ -744,21 +778,6 @@ OSStatus renderCallback (void						*inRefCon,
     return noErr;
 }	
 
-#pragma mark - Audio Session Listeners
-#if defined (USING_IOS)
-void sessionPropertyListener(void *                  inClientData,
-							 AudioSessionPropertyID  inID,
-							 UInt32                  inDataSize,
-							 const void *            inData){
-	
-    
-	if (inID == kAudioSessionProperty_AudioRouteChange)
-    {
-        Novocaine *sm = (__bridge Novocaine *)inClientData;
-        [sm checkSessionProperties];
-    }
-}
-
 -(void) checkAudioSource {
     // Check what the incoming audio route is.
     UInt32 propertySize = sizeof(CFStringRef);
@@ -811,33 +830,13 @@ void sessionPropertyListener(void *                  inClientData,
     NSLog(@"Current sampling rate: %f", self.samplingRate);	
 }
 
-void sessionInterruptionListener(void *inClientData, UInt32 inInterruption) {
-    
-	Novocaine *sm = (__bridge Novocaine *)inClientData;
-    
-	if (inInterruption == kAudioSessionBeginInterruption) {
-		NSLog(@"Begin interuption");
-		sm.inputAvailable = NO;
-	}
-	else if (inInterruption == kAudioSessionEndInterruption) {
-		NSLog(@"End interuption");	
-		sm.inputAvailable = YES;
-		[sm play];
-	}
-}
-
-#endif
-
 #if defined ( USING_OSX )
-{
 // Checks the number of channels and sampling rate of the connected device.
 -(void) checkDeviceProperties {
     
 }
 
 -(void) selectAudioDevice:(AudioDeviceID)deviceID {
-    
-}
 }
 #endif
 
@@ -846,6 +845,28 @@ void sessionInterruptionListener(void *inClientData, UInt32 inInterruption) {
 	return [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
 }
 
+
+#pragma mark - Audio Session Listeners
+#if defined (USING_IOS)
+void sessionPropertyListener(void *                  inClientData,
+							 AudioSessionPropertyID  inID,
+							 UInt32                  inDataSize,
+							 const void *            inData){
+	
+    
+	if (inID == kAudioSessionProperty_AudioRouteChange)
+    {
+        Novocaine *sm = (__bridge Novocaine *)inClientData;
+		
+		if (!sm.playing)
+			return;
+		if (!sm.outputBlock)
+			return;
+		
+        [sm checkSessionProperties];
+    }
+}
+#endif
 @end
 
 

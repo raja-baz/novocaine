@@ -36,8 +36,10 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     
+    // Can only init Audio ONCE per application
+    [AudioManager sharedAudioManager];
 
-    audioManager = [Novocaine audioManager];
+    audioManager = [[Novocaine alloc] init];
 //    ringBuffer = new RingBuffer(32768, 2); 
     
 

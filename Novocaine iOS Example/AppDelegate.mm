@@ -26,6 +26,8 @@
 
 #import "ViewController.h"
 
+#import "AudioManager.h"
+
 @implementation AppDelegate
 
 @synthesize window = _window;
@@ -34,6 +36,9 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    // Can only init Audio ONCE per application
+    [AudioManager sharedAudioManager];
+    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {

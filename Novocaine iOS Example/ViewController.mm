@@ -53,8 +53,8 @@
     BOOL testMeasureDecibles = YES;
     BOOL testPlayDalekVoice = NO;
 
-    ringBuffer = new RingBuffer(32768, 2); 
-    audioManager = [Novocaine audioManager];
+    ringBuffer = new RingBuffer(32768, 2);    
+    audioManager = [[Novocaine alloc] init];
 
     RingBuffer *bRingBuffer=ringBuffer;
     

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		121D992B16752E8600A04316 /* AudioManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 121D992A16752E8600A04316 /* AudioManager.m */; };
+		121D992C16752E8600A04316 /* AudioManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 121D992A16752E8600A04316 /* AudioManager.m */; };
 		12B8170D166EEF400056EFD6 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 12B8170C166EEF400056EFD6 /* Default-568h@2x.png */; };
 		FA0B92E9154ACB100079834E /* AudioFileReader.mm in Sources */ = {isa = PBXBuildFile; fileRef = FA0B92E8154ACB100079834E /* AudioFileReader.mm */; };
 		FA0B92EA154ACB100079834E /* AudioFileReader.mm in Sources */ = {isa = PBXBuildFile; fileRef = FA0B92E8154ACB100079834E /* AudioFileReader.mm */; };
@@ -43,6 +45,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		121D992916752E8600A04316 /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
+		121D992A16752E8600A04316 /* AudioManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioManager.m; sourceTree = "<group>"; };
 		12B8170C166EEF400056EFD6 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		FA0B92E7154ACB100079834E /* AudioFileReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileReader.h; sourceTree = "<group>"; };
 		FA0B92E8154ACB100079834E /* AudioFileReader.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AudioFileReader.mm; sourceTree = "<group>"; };
@@ -196,6 +200,8 @@
 		FA552694152A63F6003D9601 /* Novocaine */ = {
 			isa = PBXGroup;
 			children = (
+				121D992916752E8600A04316 /* AudioManager.h */,
+				121D992A16752E8600A04316 /* AudioManager.m */,
 				FA2015EB154B0D9B00F8D3AC /* AudioFileWriter.h */,
 				FA2015EC154B0DA700F8D3AC /* AudioFileWriter.m */,
 				FA552695152A63F6003D9601 /* Novocaine.h */,
@@ -335,6 +341,7 @@
 				FA55269C152A63F6003D9601 /* RingBuffer.mm in Sources */,
 				FA0B92E9154ACB100079834E /* AudioFileReader.mm in Sources */,
 				FA2015ED154B0DA700F8D3AC /* AudioFileWriter.m in Sources */,
+				121D992B16752E8600A04316 /* AudioManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,6 +356,7 @@
 				FA5526E1152A6452003D9601 /* ViewController.mm in Sources */,
 				FA0B92EA154ACB100079834E /* AudioFileReader.mm in Sources */,
 				FA2015EE154B0DA700F8D3AC /* AudioFileWriter.m in Sources */,
+				121D992C16752E8600A04316 /* AudioManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
