@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		121D992B16752E8600A04316 /* AudioManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 121D992A16752E8600A04316 /* AudioManager.m */; };
 		121D992C16752E8600A04316 /* AudioManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 121D992A16752E8600A04316 /* AudioManager.m */; };
+		12B2B56C1691EA9800E5F802 /* SoundEffectQueue.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12B2B56B1691EA9800E5F802 /* SoundEffectQueue.mm */; };
+		12B2B56D1691EA9800E5F802 /* SoundEffectQueue.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12B2B56B1691EA9800E5F802 /* SoundEffectQueue.mm */; };
+		12B2B5721691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 12B2B5711691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m */; };
+		12B2B5731691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 12B2B5711691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m */; };
 		12B8170D166EEF400056EFD6 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 12B8170C166EEF400056EFD6 /* Default-568h@2x.png */; };
 		FA0B92E9154ACB100079834E /* AudioFileReader.mm in Sources */ = {isa = PBXBuildFile; fileRef = FA0B92E8154ACB100079834E /* AudioFileReader.mm */; };
 		FA0B92EA154ACB100079834E /* AudioFileReader.mm in Sources */ = {isa = PBXBuildFile; fileRef = FA0B92E8154ACB100079834E /* AudioFileReader.mm */; };
@@ -47,6 +51,10 @@
 /* Begin PBXFileReference section */
 		121D992916752E8600A04316 /* AudioManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioManager.h; sourceTree = "<group>"; };
 		121D992A16752E8600A04316 /* AudioManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioManager.m; sourceTree = "<group>"; };
+		12B2B56A1691EA9800E5F802 /* SoundEffectQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoundEffectQueue.h; sourceTree = "<group>"; };
+		12B2B56B1691EA9800E5F802 /* SoundEffectQueue.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SoundEffectQueue.mm; sourceTree = "<group>"; };
+		12B2B5701691EBBD00E5F802 /* NSMutableArray+QueueAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableArray+QueueAdditions.h"; sourceTree = "<group>"; };
+		12B2B5711691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableArray+QueueAdditions.m"; sourceTree = "<group>"; };
 		12B8170C166EEF400056EFD6 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		FA0B92E7154ACB100079834E /* AudioFileReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileReader.h; sourceTree = "<group>"; };
 		FA0B92E8154ACB100079834E /* AudioFileReader.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AudioFileReader.mm; sourceTree = "<group>"; };
@@ -123,6 +131,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		12B2B5691691EA9800E5F802 /* SoundEffectQueue */ = {
+			isa = PBXGroup;
+			children = (
+				12B2B56A1691EA9800E5F802 /* SoundEffectQueue.h */,
+				12B2B56B1691EA9800E5F802 /* SoundEffectQueue.mm */,
+			);
+			path = SoundEffectQueue;
+			sourceTree = "<group>";
+		};
+		12B2B56F1691EBBD00E5F802 /* Categories */ = {
+			isa = PBXGroup;
+			children = (
+				12B2B5701691EBBD00E5F802 /* NSMutableArray+QueueAdditions.h */,
+				12B2B5711691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m */,
+			);
+			path = Categories;
+			sourceTree = "<group>";
+		};
 		FA552628152A63A4003D9601 = {
 			isa = PBXGroup;
 			children = (
@@ -131,6 +157,7 @@
 				FA55267F152A63B6003D9601 /* Novocaine Mac Example */,
 				FA5526D3152A6452003D9601 /* Novocaine iOS Example */,
 				FA552636152A63A4003D9601 /* Frameworks */,
+				12B2B56F1691EBBD00E5F802 /* Categories */,
 				FA552634152A63A4003D9601 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -200,6 +227,7 @@
 		FA552694152A63F6003D9601 /* Novocaine */ = {
 			isa = PBXGroup;
 			children = (
+				12B2B5691691EA9800E5F802 /* SoundEffectQueue */,
 				121D992916752E8600A04316 /* AudioManager.h */,
 				121D992A16752E8600A04316 /* AudioManager.m */,
 				FA2015EB154B0D9B00F8D3AC /* AudioFileWriter.h */,
@@ -342,6 +370,8 @@
 				FA0B92E9154ACB100079834E /* AudioFileReader.mm in Sources */,
 				FA2015ED154B0DA700F8D3AC /* AudioFileWriter.m in Sources */,
 				121D992B16752E8600A04316 /* AudioManager.m in Sources */,
+				12B2B56C1691EA9800E5F802 /* SoundEffectQueue.mm in Sources */,
+				12B2B5721691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +387,8 @@
 				FA0B92EA154ACB100079834E /* AudioFileReader.mm in Sources */,
 				FA2015EE154B0DA700F8D3AC /* AudioFileWriter.m in Sources */,
 				121D992C16752E8600A04316 /* AudioManager.m in Sources */,
+				12B2B56D1691EA9800E5F802 /* SoundEffectQueue.mm in Sources */,
+				12B2B5731691EBBD00E5F802 /* NSMutableArray+QueueAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

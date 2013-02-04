@@ -115,6 +115,9 @@
 #if defined ( USING_OSX )
     _deviceNames = nil; // more than we'll need
 #endif
+
+	//AudioComponentInstanceDispose();
+
 }
 
 #pragma mark - Audio Methods
@@ -265,108 +268,131 @@
 # if defined USING_IOS
     UInt32 size;
 	size = sizeof( AudioStreamBasicDescription );
-	CheckError( AudioUnitGetProperty( self.inputUnit, 
-                                     kAudioUnitProperty_StreamFormat, 
-                                     kAudioUnitScope_Input, 
-                                     1, 
-                                     &_inputFormat,
-                                     &size ), 
-               "Couldn't get the hardware input stream format");
-    
-    NSLog(@"_inputFormat: mBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
-          _inputFormat.mBitsPerChannel,
-          _inputFormat.mBytesPerFrame,
-          _inputFormat.mBytesPerPacket,
-          _inputFormat.mChannelsPerFrame,
-          _inputFormat.mFormatFlags,
-          _inputFormat.mFormatID,
-          _inputFormat.mFramesPerPacket,
-          _inputFormat.mReserved
-          );
-	
-	// Check the output stream format
-	size = sizeof( AudioStreamBasicDescription );
-	CheckError( AudioUnitGetProperty( self.inputUnit, 
-                                     kAudioUnitProperty_StreamFormat, 
-                                     kAudioUnitScope_Output, 
-                                     1, 
-                                     &_outputFormat,
-                                     &size ), 
-               "Couldn't get the hardware output stream format");
-    
-    NSLog(@"_outputFormat: mBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
-          _outputFormat.mBitsPerChannel,
-          _outputFormat.mBytesPerFrame,
-          _outputFormat.mBytesPerPacket,
-          _outputFormat.mChannelsPerFrame,
-          _outputFormat.mFormatFlags,
-          _outputFormat.mFormatID,
-          _outputFormat.mFramesPerPacket,
-          _outputFormat.mReserved
-          );
-    
-    // TODO: check this works on iOS!
-    _outputFormat.mSampleRate = 44100.0;
-    
-    // The canonical format for iOS filter audio units is 8.24 fixed-point (linear PCM), which is 32 bits per channel, not 16.
-    _outputFormat.mSampleRate = self.samplingRate;
-    _outputFormat.mFormatID = kAudioFormatLinearPCM;
-    _outputFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsNonInterleaved;;
-    
-    self.samplingRate = self.inputFormat.mSampleRate;
-    self.numBytesPerSample = self.inputFormat.mBitsPerChannel / 8;
-    
-    size = sizeof(AudioStreamBasicDescription);
-	CheckError(AudioUnitSetProperty(self.inputUnit,
-									kAudioUnitProperty_StreamFormat,
-									kAudioUnitScope_Output,
-									kInputBus,
-									&_outputFormat,
-									size),
-			   "Couldn't set the ASBD on the Output audio unit!!!");
-    
-    // Check the parameters again to ensure they got set properly!
-    size = sizeof( AudioStreamBasicDescription );
-	CheckError( AudioUnitGetProperty( self.inputUnit,
-                                     kAudioUnitProperty_StreamFormat,
-                                     kAudioUnitScope_Input,
-                                     1,
-                                     &_inputFormat,
-                                     &size ),
-               "Couldn't get the hardware input stream format");
-    
-    NSLog(@"_inputFormat: mBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
-          _inputFormat.mBitsPerChannel,
-          _inputFormat.mBytesPerFrame,
-          _inputFormat.mBytesPerPacket,
-          _inputFormat.mChannelsPerFrame,
-          _inputFormat.mFormatFlags,
-          _inputFormat.mFormatID,
-          _inputFormat.mFramesPerPacket,
-          _inputFormat.mReserved
-          );
-	
-	// Check the output stream format
-	size = sizeof( AudioStreamBasicDescription );
-	CheckError( AudioUnitGetProperty( self.inputUnit,
-                                     kAudioUnitProperty_StreamFormat,
-                                     kAudioUnitScope_Output,
-                                     1,
-                                     &_outputFormat,
-                                     &size ),
-               "Couldn't get the hardware output stream format");
-    
-    NSLog(@"_outputFormat: mBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
-          _outputFormat.mBitsPerChannel,
-          _outputFormat.mBytesPerFrame,
-          _outputFormat.mBytesPerPacket,
-          _outputFormat.mChannelsPerFrame,
-          _outputFormat.mFormatFlags,
-          _outputFormat.mFormatID,
-          _outputFormat.mFramesPerPacket,
-          _outputFormat.mReserved
-          );
-    
+	{
+		CheckError( AudioUnitGetProperty( self.inputUnit, 
+										 kAudioUnitProperty_StreamFormat, 
+										 kAudioUnitScope_Input, 
+										 kOutputBus,
+										 &_inputFormat,
+										 &size ), 
+				   "Couldn't get the hardware input stream format");
+		
+		NSLog(@"_inputFormat:  mSampleRate:%f\nmBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
+			  _inputFormat.mSampleRate,
+			  _inputFormat.mBitsPerChannel,
+			  _inputFormat.mBytesPerFrame,
+			  _inputFormat.mBytesPerPacket,
+			  _inputFormat.mChannelsPerFrame,
+			  _inputFormat.mFormatFlags,
+			  _inputFormat.mFormatID,
+			  _inputFormat.mFramesPerPacket,
+			  _inputFormat.mReserved
+			  );
+		
+		_inputFormat.mChannelsPerFrame   = 1;
+
+	}
+
+	{
+		// Check the output stream format
+		size = sizeof( AudioStreamBasicDescription );
+		CheckError( AudioUnitGetProperty( self.inputUnit,
+										 kAudioUnitProperty_StreamFormat,
+										 kAudioUnitScope_Output,
+										 kInputBus,
+										 &_outputFormat,
+										 &size ),
+				   "Couldn't get the hardware output stream format");
+
+		NSLog(@"_outputFormat: mSampleRate:%f\nmBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
+			  _outputFormat.mSampleRate,
+			  _outputFormat.mBitsPerChannel,
+			  _outputFormat.mBytesPerFrame,
+			  _outputFormat.mBytesPerPacket,
+			  _outputFormat.mChannelsPerFrame,
+			  _outputFormat.mFormatFlags,
+			  _outputFormat.mFormatID,
+			  _outputFormat.mFramesPerPacket,
+			  _outputFormat.mReserved
+			  );
+
+		// TODO: check this works on iOS!
+		_outputFormat.mSampleRate = 44100.0;
+		_outputFormat.mChannelsPerFrame   = 1;
+
+		// The canonical format for iOS filter audio units is 8.24 fixed-point (linear PCM), which is 32 bits per channel, not 16.
+		_outputFormat.mSampleRate = self.samplingRate;
+		_outputFormat.mFormatID = kAudioFormatLinearPCM;
+		_outputFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsNonInterleaved;;
+
+		self.samplingRate = self.inputFormat.mSampleRate;
+		self.numBytesPerSample = self.inputFormat.mBitsPerChannel / 8;
+
+		size = sizeof(AudioStreamBasicDescription);
+		CheckError(AudioUnitSetProperty(self.inputUnit,
+										kAudioUnitProperty_StreamFormat,
+										kAudioUnitScope_Output,
+										kInputBus,
+										&_outputFormat,
+										size),
+				   "Couldn't set the ASBD on the Output audio unit!!!");
+
+
+		// Check the output stream format
+		size = sizeof( AudioStreamBasicDescription );
+		CheckError( AudioUnitGetProperty( self.inputUnit,
+										 kAudioUnitProperty_StreamFormat,
+										 kAudioUnitScope_Output,
+										 kInputBus,
+										 &_outputFormat,
+										 &size ),
+				   "Couldn't get the hardware output stream format");
+#ifdef DEBUG
+		NSLog(@"_outputFormat: mSampleRate:%f\nmBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
+			  _outputFormat.mSampleRate,
+			  _outputFormat.mBitsPerChannel,
+			  _outputFormat.mBytesPerFrame,
+			  _outputFormat.mBytesPerPacket,
+			  _outputFormat.mChannelsPerFrame,
+			  _outputFormat.mFormatFlags,
+			  _outputFormat.mFormatID,
+			  _outputFormat.mFramesPerPacket,
+			  _outputFormat.mReserved
+			  );
+#endif
+
+		size = sizeof( AudioStreamBasicDescription );
+		CheckError(AudioUnitSetProperty(self.inputUnit,
+										kAudioUnitProperty_StreamFormat,
+										kAudioUnitScope_Input,
+										kOutputBus,
+										&_outputFormat,
+										size),
+				   "Couldn't set the ASBD on the Input audio unit!!!");
+
+		// Check the parameters again to ensure they got set properly!
+		size = sizeof( AudioStreamBasicDescription );
+		CheckError( AudioUnitGetProperty( self.inputUnit,
+										 kAudioUnitProperty_StreamFormat,
+										 kAudioUnitScope_Input,
+										 kOutputBus,
+										 &_inputFormat,
+										 &size ),
+				   "Couldn't get the hardware input stream format");
+#ifdef DEBUG
+		NSLog(@"_inputFormat: mSampleRate:%f\nmBitsPerChannel:%ld mBytesPerFrame:%ld mBytesPerPacket:%ld mChannelsPerFrame:%ld mFormatFlags:%ld mFormatID:%ld mFramesPerPacket:%ld mReserved:%ld",
+			  _inputFormat.mSampleRate,
+			  _inputFormat.mBitsPerChannel,
+			  _inputFormat.mBytesPerFrame,
+			  _inputFormat.mBytesPerPacket,
+			  _inputFormat.mChannelsPerFrame,
+			  _inputFormat.mFormatFlags,
+			  _inputFormat.mFormatID,
+			  _inputFormat.mFramesPerPacket,
+			  _inputFormat.mReserved
+			  );
+#endif
+	}
 # elif defined USING_OSX
 {
     UInt32 size = sizeof(AudioDeviceID);
@@ -474,7 +500,7 @@
     
 	if (_outputFormat.mFormatFlags & kAudioFormatFlagIsNonInterleaved) {
         // The audio is non-interleaved
-        printf("Not interleaved!\n");
+        NSLog(@"Not interleaved!\n");
         self.isInterleaved = NO;
         
         // allocate an AudioBufferList plus enough space for array of AudioBuffers
@@ -493,7 +519,7 @@
 		}
         
 	} else {
-		printf ("Format is interleaved\n");
+		NSLog(@"Format is interleaved\n");
         self.isInterleaved = YES;
         
 		// allocate an AudioBufferList plus enough space for array of AudioBuffers
@@ -526,7 +552,7 @@
     callbackStruct.inputProc = renderCallback;
     callbackStruct.inputProcRefCon = (__bridge void *)(self);
 
-# if defined USING_OSX
+#if defined USING_OSX
 {
     CheckError( AudioUnitSetProperty(self.outputUnit, 
                                      kAudioUnitProperty_SetRenderCallback, 
@@ -733,7 +759,6 @@ OSStatus renderCallback (void						*inRefCon,
 	Novocaine *sm = (__bridge Novocaine *)inRefCon;
     float zero = 0.0;
     
-    
     for (UInt32 iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {        
         memset(ioData->mBuffers[iBuffer].mData, 0, ioData->mBuffers[iBuffer].mDataByteSize);
     }
@@ -744,17 +769,19 @@ OSStatus renderCallback (void						*inRefCon,
         return noErr;
 
     // Collect data to render from the callbacks
+
+	memset(sm.outData, 0, sizeof(float)*inNumberFrames*sm.numOutputChannels);
     sm.outputBlock(sm.outData, inNumberFrames, sm.numOutputChannels);
     
     // Put the rendered data into the output buffer
     // TODO: convert SInt16 ranges to float ranges.
+
     if ( sm.numBytesPerSample == 4 ) // then we've already got floats
     {
-        
-        for (UInt32 iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {  
+        for (UInt32 iBuffer=0; iBuffer < ioData->mNumberBuffers; ++iBuffer) {
             
             int thisNumChannels = ioData->mBuffers[iBuffer].mNumberChannels;
-            
+            // NSLog(@"thisNumChannels:%d numOutputChannels:%d",thisNumChannels,(unsigned int)sm.numOutputChannels);
             for (int iChannel = 0; iChannel < thisNumChannels; ++iChannel) {
                 vDSP_vsadd(sm.outData+iChannel, sm.numOutputChannels, &zero, (float *)ioData->mBuffers[iBuffer].mData, thisNumChannels, inNumberFrames);
             }
@@ -812,14 +839,14 @@ OSStatus renderCallback (void						*inRefCon,
     UInt32 newNumChannels;
     CheckError( AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &size, &newNumChannels), "Checking number of input channels");
     self.numInputChannels = newNumChannels;
-    //    self.numInputChannels = 1;
+	self.numInputChannels = 1;
     NSLog(@"We've got %lu input channels", self.numInputChannels);
     
     // Check the number of input channels.
     // Find the number of channels
     CheckError( AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputNumberChannels, &size, &newNumChannels), "Checking number of output channels");
     self.numOutputChannels = newNumChannels;
-    //    self.numOutputChannels = 1;
+	self.numOutputChannels = 1;
     NSLog(@"We've got %lu output channels", self.numOutputChannels);
     
     // Get the hardware sampling rate. This is settable, but here we're only reading.

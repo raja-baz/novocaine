@@ -25,12 +25,21 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+#import <AudioToolbox/AudioToolbox.h>
 #import "AudioFileReader.h"
 
-@interface AudioFileReader ()
-{
+#import "RingBuffer.h"
+#import "Novocaine.h"
+
+@interface AudioFileReader () {
     RingBuffer *ringBuffer;
+	
+	NSString *filename;
+	
+	SEL onPlayFinished;
+	id target;
 }
+@property (nonatomic, copy) InputBlock readerBlock;
 
 @property AudioStreamBasicDescription outputFormat;
 @property ExtAudioFileRef inputFile;
@@ -42,17 +51,12 @@
 @property SInt64 currentFileTime;
 @property dispatch_source_t callbackTimer;
 
-
-- (void)bufferNewAudio;
-
+-(void) bufferNewAudio;
 @end
-
-
 
 @implementation AudioFileReader
 
-- (void)dealloc
-{
+- (void)dealloc {
     // If the dispatch timer is active, close it off
     if (_playing)
         [self pause];
@@ -66,30 +70,28 @@
     free(_holdingBuffer);
     
     delete ringBuffer;
+	
+	target = nil;
+	onPlayFinished = nil;
+	filename = nil;
 }
 
-
-- (id)initWithAudioFileURL:(NSURL *)urlToAudioFile samplingRate:(float)thisSamplingRate numChannels:(UInt32)thisNumChannels
-{
+- (id)initWithAudioFileURL:(NSURL *)urlToAudioFile samplingRate:(float)thisSamplingRate numChannels:(UInt32)thisNumChannels {
     self = [super init];
     if (self)
     {
-        
         // Zero-out our timer, so we know we're not using our callback yet
         self.callbackTimer = nil;
-        
         
         // Open a reference to the audio file
         self.audioFileURL = urlToAudioFile;
         CFURLRef audioFileRef = (__bridge CFURLRef)self.audioFileURL;
         CheckError(ExtAudioFileOpenURL(audioFileRef, &_inputFile), "Opening file URL (ExtAudioFileOpenURL)");
-
         
         // Set a few defaults and presets
         self.samplingRate = thisSamplingRate;
         self.numChannels = thisNumChannels;
-        self.latency = .011609977; // 512 samples / ( 44100 samples / sec ) default
-        
+        self.latency = 512 / self.samplingRate; // 512 samples / ( 44100 samples / sec ) default
         
         // We're going to impose a format upon the input file
         // Single-channel float does the trick.
@@ -105,7 +107,6 @@
         // Apply the format to our file
         ExtAudioFileSetProperty(_inputFile, kExtAudioFileProperty_ClientDataFormat, sizeof(AudioStreamBasicDescription), &_outputFormat);
         
-        
         // Arbitrary buffer sizes that don't matter so much as long as they're "big enough"
         self.outputBufferSize = 65536;
         self.numSamplesReadPerPacket = 8192;
@@ -113,26 +114,92 @@
         self.outputBuffer = (float *)calloc(2*self.samplingRate, sizeof(float));
         self.holdingBuffer = (float *)calloc(2*self.samplingRate, sizeof(float));
         
-        
         // Allocate a ring buffer (this is what's going to buffer our audio)
         ringBuffer = new RingBuffer(self.outputBufferSize, self.numChannels);
         
-        
         // Fill up the buffers, so we're ready to play immediately
         [self bufferNewAudio];
-        
     }
     return self;
 }
 
-- (void)clearBuffer
-{
+- (id)initWithSoundNamed:(NSString *)file {
+	
+	// Zero-out our timer, so we know we're not using our callback yet
+	self.callbackTimer = nil;
+	
+	// Open a reference to the audio file
+	self.audioFileURL = [[NSBundle mainBundle] URLForResource:file withExtension:@"wav"];
+	
+	AudioFileID     fileID;
+	AudioStreamBasicDescription     format;
+	
+	AudioFileOpenURL(
+					 (__bridge CFURLRef)self.audioFileURL,
+					 0x01, //fsRdPerm, read only
+					 0, //no hint
+					 &fileID
+					 );
+	
+	UInt32 sizeOfPlaybackFormatASBDStruct = sizeof format;
+	AudioFileGetProperty (
+						  fileID,
+						  kAudioFilePropertyDataFormat,
+						  &sizeOfPlaybackFormatASBDStruct,
+						  &format
+						  );
+	AudioFileClose(fileID);
+	
+	return [self initWithAudioFileURL:self.audioFileURL samplingRate:format.mSampleRate numChannels:format.mChannelsPerFrame];
+}
+
+-(id) initAndPlayWithSoundNamed:(NSString *)path {
+	self.playing = NO;
+	
+	if(path == nil || [path length]==0)
+		return self;
+	
+	// Get the file name from the end of the path.
+	NSArray* pathComponents = [path componentsSeparatedByString:@"/"];
+	
+	if ([pathComponents count] > 0)
+		filename = [[pathComponents lastObject] copy];
+	
+	// Open the audio file.
+	NSString *filepath;
+	//NSLog(@"Open audio path %@ filename: %@",path,filename);
+	if(filename == nil || [filename length]==0)
+	{
+		filepath = [[NSBundle mainBundle] pathForResource:path ofType:@"wav"];
+	}
+	else
+	{
+		filepath = [[NSBundle mainBundle] pathForResource:filename ofType:@"wav"];
+	}
+	
+	NSLog(@"Openning file %@ in NSBundle",filepath);
+	if(filepath == nil || ![filepath length])
+	{
+		NSLog(@"Error finding file %@ in NSBundle",path);
+		return self;
+	}
+	
+	return [self initWithSoundNamed:filepath];
+}
+
+-(void) playWithFollowonAction:(SEL)s target:(id) tid {
+	
+	target=tid;
+	onPlayFinished = s;
+	
+	[self play];
+}
+
+-(void) clearBuffer {
     ringBuffer->Clear();
 }
 
-- (void)bufferNewAudio
-{
-    
+-(void) bufferNewAudio {
     if (ringBuffer->NumUnreadFrames() > self.desiredPrebufferedSamples)
         return;
     
@@ -168,18 +235,13 @@
         [self stop];
         ringBuffer->Clear();
     }
-    
-    
 }
 
-- (float)getCurrentTime
-{
+-(float) getCurrentTime {
     return self.currentFileTime - ringBuffer->NumUnreadFrames()/self.samplingRate;
 }
 
-
-- (void)setCurrentTime:(float)thisCurrentTime
-{
+-(void) setCurrentTime:(float)thisCurrentTime {
     dispatch_async(dispatch_get_main_queue(), ^{
         [self pause];
         ExtAudioFileSeek(self.inputFile, thisCurrentTime*self.samplingRate);
@@ -191,8 +253,7 @@
     });
 }
 
-- (float)getDuration
-{
+-(float) getDuration {
     // We're going to directly calculate the duration of the audio file (in seconds)
     SInt64 framesInThisFile;
     UInt32 propertySize = sizeof(framesInThisFile);
@@ -203,11 +264,9 @@
     ExtAudioFileGetProperty(self.inputFile, kExtAudioFileProperty_FileDataFormat, &propertySize, &fileStreamFormat);
     
     return (float)framesInThisFile/(float)fileStreamFormat.mSampleRate;
-    
 }
 
-- (void)configureReaderCallback
-{
+-(void) configureReaderCallback {
     
     if (!self.callbackTimer)
     {
@@ -239,15 +298,11 @@
     }
 }
 
-
-- (void)retrieveFreshAudio:(float *)buffer numFrames:(UInt32)thisNumFrames numChannels:(UInt32)thisNumChannels
-{
+-(void) retrieveFreshAudio:(float *)buffer numFrames:(UInt32)thisNumFrames numChannels:(UInt32)thisNumChannels {
     ringBuffer->FetchInterleavedData(buffer, thisNumFrames, thisNumChannels);
 }
 
-
-- (void)play;
-{
+-(void) play {
 
     // Configure (or if necessary, create and start) the timer for retrieving audio
     if (!self.playing) {
@@ -257,14 +312,12 @@
 
 }
 
-- (void)pause
-{
+-(void) pause {
     // Pause the dispatch timer for retrieving the MP3 audio
     self.playing = FALSE;
 }
 
-- (void)stop
-{
+-(void) stop {
     // Release the dispatch timer because it holds a reference to this class instance
     [self pause];
     if (self.callbackTimer) {
