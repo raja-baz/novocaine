@@ -318,7 +318,7 @@
 
 		// TODO: check this works on iOS!
 		_outputFormat.mSampleRate = 44100.0;
-		_outputFormat.mChannelsPerFrame   = 1;
+		// _outputFormat.mChannelsPerFrame   = 1;
 
 		// The canonical format for iOS filter audio units is 8.24 fixed-point (linear PCM), which is 32 bits per channel, not 16.
 		_outputFormat.mSampleRate = self.samplingRate;

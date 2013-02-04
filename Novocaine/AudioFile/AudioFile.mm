@@ -99,7 +99,7 @@
 	theFileFormat.mBytesPerPacket = audioManager.outputFormat.mBytesPerPacket; // 4*theFileFormat.mChannelsPerFrame;
 	theFileFormat.mFramesPerPacket = audioManager.outputFormat.mFramesPerPacket; // 1;
 	theFileFormat.mBytesPerFrame = audioManager.outputFormat.mBytesPerFrame; // 4*theFileFormat.mChannelsPerFrame;
-	theFileFormat.mChannelsPerFrame = audioManager.outputFormat.mChannelsPerFrame; // theFileFormat.mChannelsPerFrame;
+	theFileFormat.mChannelsPerFrame = 1; // theFileFormat.mChannelsPerFrame;
 	theFileFormat.mBitsPerChannel = audioManager.outputFormat.mBitsPerChannel; // 32;
 
 	// Apply the format to our file

@@ -63,7 +63,7 @@
 
 -(UInt32) playQueuedSoundEffect:(float*)outdata numFrames:(UInt32)frames channel:(int)channel numChannels:(int)channels {
 
-	if(skipLoops < 10)
+	if(skipLoops < 6)
 	{
 		// leave some time delay between playing sounds once one ends
 		skipLoops ++;
